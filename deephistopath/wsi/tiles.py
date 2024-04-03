@@ -32,11 +32,11 @@ from deephistopath.wsi import filter
 from deephistopath.wsi import slide
 from deephistopath.wsi.util import Time
 
-TISSUE_HIGH_THRESH = 80
+TISSUE_HIGH_THRESH = 75
 TISSUE_LOW_THRESH = 10
 
-ROW_TILE_SIZE = 1024
-COL_TILE_SIZE = 1024
+ROW_TILE_SIZE = 256
+COL_TILE_SIZE = 256
 NUM_TOP_TILES = 50
 
 DISPLAY_TILE_SUMMARY_LABELS = False
@@ -177,7 +177,7 @@ def generate_tile_summaries(tile_sum, np_img, display=True, save_summary=False):
 
   summary_txt = summary_title(tile_sum) + "\n" + summary_stats(tile_sum)
 
-  summary_font = ImageFont.truetype(SUMMARY_TITLE_FONT_PATH, size=SUMMARY_TITLE_TEXT_SIZE)
+  summary_font = ImageFont.load_default()
   draw.text((5, 5), summary_txt, SUMMARY_TITLE_TEXT_COLOR, font=summary_font)
   draw_orig.text((5, 5), summary_txt, SUMMARY_TITLE_TEXT_COLOR, font=summary_font)
 
@@ -186,7 +186,7 @@ def generate_tile_summaries(tile_sum, np_img, display=True, save_summary=False):
     for t in tile_sum.tiles:
       count += 1
       label = "R%d\nC%d" % (t.r, t.c)
-      font = ImageFont.truetype(FONT_PATH, size=TILE_LABEL_TEXT_SIZE)
+      font = ImageFont.load_default() 
       # drop shadow behind text
       draw.text(((t.c_s + 3), (t.r_s + 3 + z)), label, (0, 0, 0), font=font)
       draw_orig.text(((t.c_s + 3), (t.r_s + 3 + z)), label, (0, 0, 0), font=font)
@@ -250,7 +250,7 @@ def generate_top_tile_summaries(tile_sum, np_img, display=True, save_summary=Fal
   summary_title = "Slide %03d Top Tile Summary:" % slide_num
   summary_txt = summary_title + "\n" + summary_stats(tile_sum)
 
-  summary_font = ImageFont.truetype(SUMMARY_TITLE_FONT_PATH, size=SUMMARY_TITLE_TEXT_SIZE)
+  summary_font = ImageFont.load_default() 
   draw.text((5, 5), summary_txt, SUMMARY_TITLE_TEXT_COLOR, font=summary_font)
   draw_orig.text((5, 5), summary_txt, SUMMARY_TITLE_TEXT_COLOR, font=summary_font)
 
@@ -261,7 +261,7 @@ def generate_top_tile_summaries(tile_sum, np_img, display=True, save_summary=Fal
   v_ds_offset = TILE_BORDER_SIZE + 1
   for t in tiles_to_label:
     label = "R%d\nC%d" % (t.r, t.c)
-    font = ImageFont.truetype(FONT_PATH, size=TILE_LABEL_TEXT_SIZE)
+    font = ImageFont.load_default() 
     # drop shadow behind text
     draw.text(((t.c_s + h_ds_offset), (t.r_s + v_ds_offset + z)), label, (0, 0, 0), font=font)
     draw_orig.text(((t.c_s + h_ds_offset), (t.r_s + v_ds_offset + z)), label, (0, 0, 0), font=font)
@@ -516,7 +516,7 @@ def summary_and_tiles(slide_num, display=True, save_summary=False, save_data=Tru
   if save_data:
     save_tile_data(tile_sum)
   generate_tile_summaries(tile_sum, np_img, display=display, save_summary=save_summary)
-  generate_top_tile_summaries(tile_sum, np_img, display=display, save_summary=save_summary)
+  generate_top_tile_summaries(tile_sum, np_img, display=display, save_summary=save_summary, show_top_stats = False)
   if save_top_tiles:
     for tile in tile_sum.top_tiles():
       tile.save_tile()
@@ -1436,8 +1436,8 @@ def pil_text(text, w_border=TILE_TEXT_W_BORDER, h_border=TILE_TEXT_H_BORDER, fon
     PIL image representing the text.
   """
 
-  font = ImageFont.truetype(font_path, font_size)
-  x, y = ImageDraw.Draw(Image.new("RGB", (1, 1), background)).textsize(text, font)
+  font = ImageFont.load_default() 
+  x, y = ImageDraw.Draw(Image.new("RGB", (1, 1), background)).textlength(text, font)[1]
   image = Image.new("RGB", (x + 2 * w_border, y + 2 * h_border), background)
   draw = ImageDraw.Draw(image)
   draw.text((w_border, h_border), text, text_color, font=font)

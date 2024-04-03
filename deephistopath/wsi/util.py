@@ -105,10 +105,10 @@ def display_img(np_img, text=None, font_path="/Library/Fonts/Arial Bold.ttf", si
     result = result.convert('RGB')
   draw = ImageDraw.Draw(result)
   if text is not None:
-    font = ImageFont.truetype(font_path, size)
+    font = ImageFont.load_default()
     if bg:
-      (x, y) = draw.textsize(text, font)
-      draw.rectangle([(0, 0), (x + 5, y + 4)], fill=background, outline=border)
+      x = draw.textlength(text, font=font)
+      draw.rectangle([(0, 0), (x + 5, x + 4)], fill=background, outline=border)
     draw.text((2, 0), text, color, font=font)
   result.show()
 

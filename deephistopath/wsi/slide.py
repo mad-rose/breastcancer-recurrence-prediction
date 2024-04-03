@@ -19,9 +19,15 @@ import math
 import matplotlib.pyplot as plt
 import multiprocessing
 import numpy as np
-import openslide
-from openslide import OpenSlideError
 import os
+OPENSLIDE_PATH = r'c:\openslide_binaries\bin'
+if hasattr(os, 'add_dll_directory'):
+    # Windows
+    with os.add_dll_directory(OPENSLIDE_PATH):
+        import openslide
+else:
+    import openslide
+from openslide import OpenSlideError
 import PIL
 from PIL import Image
 import re
@@ -31,11 +37,12 @@ from deephistopath.wsi.util import Time
 
 BASE_DIR = os.path.join(".", "data")
 # BASE_DIR = os.path.join(os.sep, "Volumes", "BigData", "TUPAC")
-TRAIN_PREFIX = "TUPAC-TR-"
-SRC_TRAIN_DIR = os.path.join(BASE_DIR, "training_slides")
-SRC_TRAIN_EXT = "svs"
+TRAIN_PREFIX = ""
+TRAIN_SUFFIX = ""
+SRC_TRAIN_DIR = os.path.join("../../../", "ltd/raw/selected")
+SRC_TRAIN_EXT = "tiff"
 DEST_TRAIN_SUFFIX = ""  # Example: "train-"
-DEST_TRAIN_EXT = "png"
+DEST_TRAIN_EXT = "tiff"
 SCALE_FACTOR = 32
 DEST_TRAIN_DIR = os.path.join(BASE_DIR, "training_" + DEST_TRAIN_EXT)
 THUMBNAIL_SIZE = 300
@@ -138,7 +145,7 @@ def get_training_slide_path(slide_number):
     Path to the WSI training slide file.
   """
   padded_sl_num = str(slide_number).zfill(3)
-  slide_filepath = os.path.join(SRC_TRAIN_DIR, TRAIN_PREFIX + padded_sl_num + "." + SRC_TRAIN_EXT)
+  slide_filepath =  os.path.join(SRC_TRAIN_DIR, padded_sl_num + TRAIN_SUFFIX + "." + SRC_TRAIN_EXT)
   return slide_filepath
 
 
@@ -156,7 +163,7 @@ def get_tile_image_path(tile):
   t = tile
   padded_sl_num = str(t.slide_num).zfill(3)
   tile_path = os.path.join(TILE_DIR, padded_sl_num,
-                           TRAIN_PREFIX + padded_sl_num + "-" + TILE_SUFFIX + "-r%d-c%d-x%d-y%d-w%d-h%d" % (
+                           padded_sl_num + TRAIN_SUFFIX + "-" + TILE_SUFFIX + "-r%d-c%d-x%d-y%d-w%d-h%d" % (
                              t.r, t.c, t.o_c_s, t.o_r_s, t.o_c_e - t.o_c_s, t.o_r_e - t.o_r_s) + "." + DEST_TRAIN_EXT)
   return tile_path
 
@@ -175,7 +182,7 @@ def get_tile_image_path_by_slide_row_col(slide_number, row, col):
   """
   padded_sl_num = str(slide_number).zfill(3)
   wilcard_path = os.path.join(TILE_DIR, padded_sl_num,
-                              TRAIN_PREFIX + padded_sl_num + "-" + TILE_SUFFIX + "-r%d-c%d-*." % (
+                              padded_sl_num + TRAIN_SUFFIX + "-" + TILE_SUFFIX + "-r%d-c%d-*." % (
                                 row, col) + DEST_TRAIN_EXT)
   img_path = glob.glob(wilcard_path)[0]
   return img_path
@@ -201,10 +208,10 @@ def get_training_image_path(slide_number, large_w=None, large_h=None, small_w=No
   """
   padded_sl_num = str(slide_number).zfill(3)
   if large_w is None and large_h is None and small_w is None and small_h is None:
-    wildcard_path = os.path.join(DEST_TRAIN_DIR, TRAIN_PREFIX + padded_sl_num + "*." + DEST_TRAIN_EXT)
+    wildcard_path = os.path.join(DEST_TRAIN_DIR, padded_sl_num + TRAIN_SUFFIX + "*." + DEST_TRAIN_EXT)
     img_path = glob.glob(wildcard_path)[0]
   else:
-    img_path = os.path.join(DEST_TRAIN_DIR, TRAIN_PREFIX + padded_sl_num + "-" + str(
+    img_path = os.path.join(DEST_TRAIN_DIR, TRAIN_PREFIX + padded_sl_num + TRAIN_SUFFIX + "-" + str(
       SCALE_FACTOR) + "x-" + DEST_TRAIN_SUFFIX + str(
       large_w) + "x" + str(large_h) + "-" + str(small_w) + "x" + str(small_h) + "." + DEST_TRAIN_EXT)
   return img_path
@@ -230,10 +237,10 @@ def get_training_thumbnail_path(slide_number, large_w=None, large_h=None, small_
   """
   padded_sl_num = str(slide_number).zfill(3)
   if large_w is None and large_h is None and small_w is None and small_h is None:
-    wilcard_path = os.path.join(DEST_TRAIN_THUMBNAIL_DIR, TRAIN_PREFIX + padded_sl_num + "*." + THUMBNAIL_EXT)
+    wilcard_path = os.path.join(DEST_TRAIN_THUMBNAIL_DIR, padded_sl_num + TRAIN_SUFFIX + "*." + THUMBNAIL_EXT)
     img_path = glob.glob(wilcard_path)[0]
   else:
-    img_path = os.path.join(DEST_TRAIN_THUMBNAIL_DIR, TRAIN_PREFIX + padded_sl_num + "-" + str(
+    img_path = os.path.join(DEST_TRAIN_THUMBNAIL_DIR, padded_sl_num + TRAIN_SUFFIX + "-" + str(
       SCALE_FACTOR) + "x-" + DEST_TRAIN_SUFFIX + str(
       large_w) + "x" + str(large_h) + "-" + str(small_w) + "x" + str(small_h) + "." + THUMBNAIL_EXT)
   return img_path
@@ -538,8 +545,7 @@ def get_tile_data_filename(slide_number):
 
   training_img_path = get_training_image_path(slide_number)
   large_w, large_h, small_w, small_h = parse_dimensions_from_image_filename(training_img_path)
-  data_filename = TRAIN_PREFIX + padded_sl_num + "-" + str(SCALE_FACTOR) + "x-" + str(large_w) + "x" + str(
-    large_h) + "-" + str(small_w) + "x" + str(small_h) + "-" + TILE_DATA_SUFFIX + ".csv"
+  data_filename = TRAIN_PREFIX + padded_sl_num + "-" + TILE_DATA_SUFFIX + ".csv"
 
   return data_filename
 
@@ -811,7 +817,6 @@ def multiprocess_training_slides_to_images():
   results = []
   for t in tasks:
     results.append(pool.apply_async(training_slide_range_to_images, t))
-
   for result in results:
     (start_ind, end_ind) = result.get()
     if start_ind == end_ind:

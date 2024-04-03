@@ -24,6 +24,7 @@ import skimage.exposure as sk_exposure
 import skimage.feature as sk_feature
 import skimage.filters as sk_filters
 import skimage.future as sk_future
+import skimage.graph as sk_graph
 import skimage.morphology as sk_morphology
 import skimage.segmentation as sk_segmentation
 
@@ -283,7 +284,7 @@ def filter_remove_small_holes(np_img, min_size=3000, output_type="uint8"):
   """
   t = Time()
 
-  rem_sm = sk_morphology.remove_small_holes(np_img, min_size=min_size)
+  rem_sm = sk_morphology.remove_small_holes(np_img)
 
   if output_type == "bool":
     pass
@@ -697,8 +698,8 @@ def filter_rag_threshold(np_img, compactness=10, n_segments=800, threshold=9):
   """
   t = Time()
   labels = sk_segmentation.slic(np_img, compactness=compactness, n_segments=n_segments)
-  g = sk_future.graph.rag_mean_color(np_img, labels)
-  labels2 = sk_future.graph.cut_threshold(labels, g, threshold)
+  g = sk_graph.rag_mean_color(np_img, labels)
+  labels2 = sk_graph.cut_threshold(labels, g, threshold)
   result = sk_color.label2rgb(labels2, np_img, kind='avg')
   util.np_info(result, "RAG Threshold", t.elapsed())
   return result
@@ -989,7 +990,7 @@ def filter_grays(rgb, tolerance=15, output_type="bool"):
   t = Time()
   (h, w, c) = rgb.shape
 
-  rgb = rgb.astype(np.int)
+  rgb = rgb.astype(int)
   rg_diff = abs(rgb[:, :, 0] - rgb[:, :, 1]) <= tolerance
   rb_diff = abs(rgb[:, :, 0] - rgb[:, :, 2]) <= tolerance
   gb_diff = abs(rgb[:, :, 1] - rgb[:, :, 2]) <= tolerance
