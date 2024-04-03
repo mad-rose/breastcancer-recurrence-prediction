@@ -17,13 +17,20 @@ limitations under the License.
 {% endcomment %}
 -->
 
-# Python WSI Preprocessing
+# Patch Based Analysis with Machine Learning for Breast Cancer Recurrence Prediction
 
-This project contains a variety of files for investigating image preprocessing using Python
-with the aim of using deep learning to perform histopathology image classification of
-whole slide images.
+This project contains code for using machine learning to predict breast cancer recurrence from whole slide images.
 
-See main tutorial [here](./docs/wsi-preprocessing-in-python/index.md).
+The files in the patch_processing folder can be used to generate patches for each slide and and extract features for each image patch. Extracted features will be stored in NumPy files. Code is also available to aggregate patch features into bags based on their associated case.
 
-See main project at [https://github.com/CODAIT/deep-histopath](https://github.com/CODAIT/deep-histopath)
-for more information.
+The code in the logistic_regression model can be used to train and evaluate a logistic regression model on the feature bags.
+
+## Processing steps
+
+1. Use patch_extract.ipbynb to extract patches from your whole slide image directory. Make sure to update the file paths for your local file structure.
+
+2. Run extract_patch_features.py to generate features for the image patches.
+
+3. Use make_bags.py to create feature bags for each case.
+
+4. Use logistic_regression_crossval.py and logistic_regression_holdout.py to train and evaluate a logistic regression model on the dataset.
